@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ne" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nepali Patro (२०८२–२०८९)</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="patro-shell">
+    <header class="patro-header">
+      <div class="header-left">
+        <h1 class="title">Nepali Patro</h1>
+
+        <!-- Today line -->
+        <p id="header-today" class="today-inline" aria-live="polite"></p>
+
+        <!-- Clock (label removed) -->
+        <div class="period-time">
+          <iframe
+            title="समय"
+            class="np-time-inline"
+            scrolling="no" border="0" frameborder="0" marginwidth="0" marginheight="0"
+            allowtransparency="true"
+            src="https://www.ashesh.com.np/linknepali-time.php?time_only=yes&font_color=ffffff&aj_time=yes&font_size=14&api=0132x6p573"
+            width="165" height="22">
+          </iframe>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme">
+          <span class="icon-wrap">
+            <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <circle cx="12" cy="12" r="5"></circle>
+              <g class="rays">
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </g>
+            </svg>
+            <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+            </svg>
+          </span>
+          <span class="theme-label">Light</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Controls -->
+    <section class="controls" aria-label="Calendar Controls">
+      <div class="selectors-wrap">
+        <label class="select-pill" aria-label="वर्ष चयन">
+          <select id="year-selector"></select>
+          <svg class="pill-caret" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </label>
+
+        <label class="select-pill" aria-label="महिना चयन">
+          <select id="month-selector"></select>
+          <svg class="pill-caret" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </label>
+      </div>
+
+      <div class="right-like-screenshot">
+        <button id="prev" class="round-nav" type="button" aria-label="अघिल्लो महिना">‹</button>
+        <div class="period-stack">
+          <div id="period-label" class="period-label" aria-live="polite"></div>
+        </div>
+        <button id="next" class="round-nav" type="button" aria-label="अर्को महिना">›</button>
+        <button id="today-btn" class="today-chip" type="button" aria-label="आज">आज</button>
+      </div>
+    </section>
+
+    <section class="content-2col">
+      <section class="calendar-card" aria-label="Calendar Grid">
+        <table id="calendar-table" role="grid" aria-label="Monthly calendar"></table>
+      </section>
+
+      <aside class="right-col">
+        <!-- Sunrise/Sunset (no heading) -->
+        <section class="sunpanel as-card" role="region" aria-label="Sunrise and Sunset">
+          <div class="sun-grid">
+            <div class="sun-card" aria-live="polite">
+              <div class="sun-row">
+                <img class="sun-icon" src="assets/sunrise.png" alt="Sunrise icon" loading="lazy" />
+                <div>
+                  <div class="sun-label">Sunrise</div>
+                  <div id="sunrise" class="sun-time">--:--</div>
+                </div>
+              </div>
+            </div>
+            <div class="sun-card" aria-live="polite">
+              <div class="sun-row">
+                <img class="sun-icon" src="assets/sunset.png" alt="Sunset icon" loading="lazy" />
+                <div>
+                  <div class="sun-label">Sunset</div>
+                  <div id="sunset" class="sun-time">--:--</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Upcoming -->
+        <section class="upcoming-card" aria-label="Upcoming festivals">
+          <h2 class="upcoming-title">आगामी पर्वहरू</h2>
+          <ul id="upcoming-list" class="upcoming-list" aria-live="polite"></ul>
+
+          <!-- NEW: Buttons below “आगामी पर्वहरू” -->
+          <div class="below-upcoming-actions" aria-label="Quick actions under upcoming">
+            <a class="action-btn" href="shuvsait.html">Shuv Sait</a>
+            <a class="action-btn" href="rashifal.html">Rashifal</a>
+            <a class="action-btn" href="goldrate.html">Gold Rate</a>
+            <a class="action-btn" href="vegetables.html">Vegetables Rate</a>
+            <a class="action-btn" href="forex.html">Forex</a>
+          </div>
+        </section>
+
+        <!-- (Removed Sait card) -->
+      </aside>
+    </section>
+  </main>
+
+  <!-- Day info modal -->
+  <div id="day-modal" class="day-modal" aria-hidden="true" role="dialog">
+    <div class="day-modal__scrim"></div>
+    <div class="day-modal__card" role="document" aria-labelledby="modal-title">
+      <button class="day-modal__close" id="modal-close" aria-label="बन्द">✕</button>
+
+      <div class="day-modal__header">
+        <div class="dm-left">
+          <h3 id="modal-title" class="dm-bs"></h3>
+        </div>
+        <div class="dm-right">
+          <div class="dm-ad-pill"><span id="modal-ad">—</span></div>
+          <div class="dm-sun">
+            <span class="sun-chip">
+              <img class="chip-ico" src="assets/sunrise.png" alt="" />
+              <span id="modal-sunrise">—</span>
+            </span>
+            <span class="sun-chip">
+              <img class="chip-ico" src="assets/sunset.png" alt="" />
+              <span id="modal-sunset">—</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="day-modal__body">
+        <ul class="dm-list">
+          <li><strong>दिन:</strong> <span id="dm-week">—</span></li>
+          <li><strong>तिथि:</strong> <span id="dm-tithi">—</span></li>
+          <li id="dm-diff-li" style="display:none;"><strong>आजबाट:</strong> <span id="dm-diff">—</span></li>
+          <li id="dm-fest-li" style="display:none;"><strong>कार्यक्रमहरू:</strong> <span id="dm-fest">—</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
