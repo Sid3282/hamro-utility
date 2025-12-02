@@ -2,171 +2,274 @@
 <html lang="ne" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Nepali Patro (२०८२–२०८९)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title id="page-title">Nepali Patro - Loading...</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="patro-shell">
-    <header class="patro-header">
-      <div class="header-left">
-        <h1 class="title">Nepali Patro</h1>
-
-        <!-- Today line -->
-        <p id="header-today" class="today-inline" aria-live="polite"></p>
-
-        <!-- Clock (label removed) -->
-        <div class="period-time">
-          <iframe
-            title="समय"
-            class="np-time-inline"
-            scrolling="no" border="0" frameborder="0" marginwidth="0" marginheight="0"
-            allowtransparency="true"
-            src="https://www.ashesh.com.np/linknepali-time.php?time_only=yes&font_color=ffffff&aj_time=yes&font_size=14&api=0132x6p573"
-            width="165" height="22">
-          </iframe>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-main">
+        <h1 class="logo">Nepali Patro</h1>
+        <div class="header-right">
+          <div class="time-container">
+            <iframe
+              title="समय"
+              class="np-time"
+              scrolling="no" border="0" frameborder="0" marginwidth="0" marginheight="0"
+              allowtransparency="true"
+              src="https://www.ashesh.com.np/linknepali-time.php?time_only=yes&font_color=ffffff&aj_time=yes&font_size=14&api=0132x6p573"
+              width="140" height="22">
+            </iframe>
+          </div>
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme">
+            <span class="icon-wrap">
+              <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <circle cx="12" cy="12" r="5"></circle>
+                <g class="rays">
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </g>
+              </svg>
+              <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
+              </svg>
+            </span>
+          </button>
         </div>
       </div>
-
-      <div class="header-right">
-        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme">
-          <span class="icon-wrap">
-            <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <circle cx="12" cy="12" r="5"></circle>
-              <g class="rays">
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-              </g>
-            </svg>
-            <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
-            </svg>
-          </span>
-          <span class="theme-label">Light</span>
-        </button>
+      
+      <div class="header-info">
+        <p id="header-today" class="today-info" aria-live="polite"></p>
       </div>
-    </header>
+    </div>
+  </header>
 
+  <main class="main">
     <!-- Controls -->
     <section class="controls" aria-label="Calendar Controls">
-      <div class="selectors-wrap">
-        <label class="select-pill" aria-label="वर्ष चयन">
-          <select id="year-selector"></select>
-          <svg class="pill-caret" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </label>
+      <div class="controls-container">
+        <div class="controls-row">
+          <div class="selectors">
+            <label class="select-wrapper" aria-label="वर्ष चयन">
+              <select id="year-selector" class="select-input"></select>
+              <svg class="select-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </label>
 
-        <label class="select-pill" aria-label="महिना चयन">
-          <select id="month-selector"></select>
-          <svg class="pill-caret" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </label>
-      </div>
+            <label class="select-wrapper" aria-label="महिना चयन">
+              <select id="month-selector" class="select-input"></select>
+              <svg class="select-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </label>
+          </div>
 
-      <div class="right-like-screenshot">
-        <button id="prev" class="round-nav" type="button" aria-label="अघिल्लो महिना">‹</button>
-        <div class="period-stack">
-          <div id="period-label" class="period-label" aria-live="polite"></div>
+          <div class="nav-controls">
+            <div class="month-nav">
+              <button id="prev" class="nav-btn prev-btn" type="button" aria-label="अघिल्लो महिना">‹</button>
+              <div class="month-display">
+                <div id="period-label" class="period-label" aria-live="polite"></div>
+              </div>
+              <button id="next" class="nav-btn next-btn" type="button" aria-label="अर्को महिना">›</button>
+            </div>
+            <button id="today-btn" class="today-btn" type="button" aria-label="आज">आज</button>
+          </div>
         </div>
-        <button id="next" class="round-nav" type="button" aria-label="अर्को महिना">›</button>
-        <button id="today-btn" class="today-chip" type="button" aria-label="आज">आज</button>
       </div>
     </section>
 
-    <section class="content-2col">
-      <section class="calendar-card" aria-label="Calendar Grid">
-        <table id="calendar-table" role="grid" aria-label="Monthly calendar"></table>
-      </section>
+    <!-- Main Content -->
+    <div class="content">
+      <div class="content-grid">
+        <!-- Calendar -->
+        <section class="calendar-container" aria-label="Calendar Grid">
+          <div class="calendar-wrapper">
+            <table id="calendar-table" role="grid" aria-label="Monthly calendar"></table>
+          </div>
+          
+          <!-- Quick Links under Calendar -->
+          <section class="quick-links-under-calendar">
+            <div class="links-grid">
+              <a class="link-item" href="ShuvSait.html" target="_blank" rel="noopener">Shuv Sait</a>
+              <a class="link-item" href="Rashifal.html" target="_blank" rel="noopener">Rashifal</a>
+              <a class="link-item" href="GoldRate.html" target="_blank" rel="noopener">Gold Rate</a>
+              <a class="link-item" href="Vegetablesrate.html" target="_blank" rel="noopener">Vegetables Rate</a>
+              <a class="link-item" href="Forex.html" target="_blank" rel="noopener">Forex</a>
+            </div>
+          </section>
+        </section>
 
-      <aside class="right-col">
-        <!-- Sunrise/Sunset (no heading) -->
-        <section class="sunpanel as-card" role="region" aria-label="Sunrise and Sunset">
-          <div class="sun-grid">
-            <div class="sun-card" aria-live="polite">
-              <div class="sun-row">
-                <img class="sun-icon" src="assets/sunrise.png" alt="Sunrise icon" loading="lazy" />
-                <div>
-                  <div class="sun-label">Sunrise</div>
-                  <div id="sunrise" class="sun-time">--:--</div>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <!-- Sunrise/Sunset -->
+          <section class="sun-card" role="region" aria-label="Sunrise and Sunset">
+            <h2 class="card-title">Sun Timings</h2>
+            <div class="sun-grid">
+              <div class="sun-item sunrise" aria-live="polite">
+                <div class="sun-item-inner">
+                  <div class="sun-icon-wrapper">
+                    <img class="sun-icon" src="assets/sunrise.png" alt="Sunrise" loading="lazy" />
+                  </div>
+                  <div class="sun-info">
+                    <div class="sun-label">Sunrise</div>
+                    <div id="sunrise" class="sun-time">--:--</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sun-item sunset" aria-live="polite">
+                <div class="sun-item-inner">
+                  <div class="sun-icon-wrapper">
+                    <img class="sun-icon" src="assets/sunset.png" alt="Sunset" loading="lazy" />
+                  </div>
+                  <div class="sun-info">
+                    <div class="sun-label">Sunset</div>
+                    <div id="sunset" class="sun-time">--:--</div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="sun-card" aria-live="polite">
-              <div class="sun-row">
-                <img class="sun-icon" src="assets/sunset.png" alt="Sunset icon" loading="lazy" />
-                <div>
-                  <div class="sun-label">Sunset</div>
-                  <div id="sunset" class="sun-time">--:--</div>
+          </section>
+
+          <!-- Upcoming Festivals -->
+          <section class="upcoming-card" aria-label="Upcoming festivals">
+            <h2 class="card-title">आगामी पर्वहरू</h2>
+            <div class="upcoming-container">
+              <ul id="upcoming-list" class="upcoming-list" aria-live="polite"></ul>
+            </div>
+          </section>
+
+          <!-- My Notes -->
+          <section class="notes-card">
+            <h2 class="card-title">My Notes</h2>
+            <div class="notes-container">
+              <div id="notes-empty" class="notes-empty">
+                <p>No notes yet. Click on any date in the calendar to add notes.</p>
+              </div>
+              <ul id="notes-list" class="notes-list" aria-live="polite">
+                <!-- Notes will be loaded here -->
+              </ul>
+            </div>
+          </section>
+
+          <!-- Forex Rates -->
+          <section class="forex-card">
+            <h2 class="card-title">Forex Rates</h2>
+            <div class="forex-controls">
+              <input type="date" id="forex-date-picker" class="forex-date-input">
+              <button id="forex-load-btn" class="forex-load-btn">Load Rates</button>
+            </div>
+            <div class="forex-container">
+              <div id="forex-loader" class="forex-loader">
+                <div class="loader-spinner"></div>
+                <span>Loading forex rates...</span>
+              </div>
+              <div id="forex-error" class="forex-error" style="display: none;">
+                <span>⚠️ Unable to load forex rates</span>
+                <button id="forex-retry" class="forex-retry">Retry</button>
+              </div>
+              <div id="forex-content" class="forex-content" style="display: none;">
+                <div class="forex-header">
+                  <span>Currency</span>
+                  <span>Unit</span>
+                  <span>Buy (NRs)</span>
+                  <span>Sell (NRs)</span>
+                </div>
+                <div id="forex-rates" class="forex-rates">
+                  <!-- Forex rates will be loaded here -->
+                </div>
+                <div class="forex-footer">
+                  <small id="forex-update-time"></small>
+                  <small>Source: NRB</small>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
-
-        <!-- Upcoming -->
-        <section class="upcoming-card" aria-label="Upcoming festivals">
-          <h2 class="upcoming-title">आगामी पर्वहरू</h2>
-          <ul id="upcoming-list" class="upcoming-list" aria-live="polite"></ul>
-
-          <!-- NEW: Buttons below “आगामी पर्वहरू” -->
-          <div class="below-upcoming-actions" aria-label="Quick actions under upcoming">
-            <a class="action-btn" href="shuvsait.html">Shuv Sait</a>
-            <a class="action-btn" href="rashifal.html">Rashifal</a>
-            <a class="action-btn" href="goldrate.html">Gold Rate</a>
-            <a class="action-btn" href="vegetables.html">Vegetables Rate</a>
-            <a class="action-btn" href="forex.html">Forex</a>
-          </div>
-        </section>
-
-        <!-- (Removed Sait card) -->
-      </aside>
-    </section>
+          </section>
+        </aside>
+      </div>
+    </div>
   </main>
 
-  <!-- Day info modal -->
+  <!-- Day Info Modal -->
   <div id="day-modal" class="day-modal" aria-hidden="true" role="dialog">
-    <div class="day-modal__scrim"></div>
-    <div class="day-modal__card" role="document" aria-labelledby="modal-title">
-      <button class="day-modal__close" id="modal-close" aria-label="बन्द">✕</button>
-
-      <div class="day-modal__header">
-        <div class="dm-left">
-          <h3 id="modal-title" class="dm-bs"></h3>
-        </div>
-        <div class="dm-right">
-          <div class="dm-ad-pill"><span id="modal-ad">—</span></div>
-          <div class="dm-sun">
-            <span class="sun-chip">
-              <img class="chip-ico" src="assets/sunrise.png" alt="" />
-              <span id="modal-sunrise">—</span>
-            </span>
-            <span class="sun-chip">
-              <img class="chip-ico" src="assets/sunset.png" alt="" />
-              <span id="modal-sunset">—</span>
-            </span>
+    <div class="modal-overlay"></div>
+    <div class="modal-container">
+      <div class="modal-card" role="document" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <div class="modal-header-left">
+            <h3 id="modal-title" class="modal-bs-title"></h3>
+          </div>
+          <div class="modal-header-right">
+            <div class="modal-ad-date"><span id="modal-ad">—</span></div>
+            <div class="modal-sun-times">
+              <span class="sun-time-chip">
+                <img class="sun-chip-icon" src="assets/sunrise.png" alt="" />
+                <span id="modal-sunrise">—</span>
+              </span>
+              <span class="sun-time-chip">
+                <img class="sun-chip-icon" src="assets/sunset.png" alt="" />
+                <span id="modal-sunset">—</span>
+              </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="day-modal__body">
-        <ul class="dm-list">
-          <li><strong>दिन:</strong> <span id="dm-week">—</span></li>
-          <li><strong>तिथि:</strong> <span id="dm-tithi">—</span></li>
-          <li id="dm-diff-li" style="display:none;"><strong>आजबाट:</strong> <span id="dm-diff">—</span></li>
-          <li id="dm-fest-li" style="display:none;"><strong>कार्यक्रमहरू:</strong> <span id="dm-fest">—</span></li>
-        </ul>
+        <div class="modal-body">
+          <ul class="modal-list">
+            <li class="modal-list-item">
+              <span class="modal-label">दिन:</span>
+              <span id="dm-week" class="modal-value">—</span>
+            </li>
+            <li class="modal-list-item">
+              <span class="modal-label">तिथि:</span>
+              <span id="dm-tithi" class="modal-value">—</span>
+            </li>
+            <li id="dm-diff-li" class="modal-list-item" style="display:none;">
+              <span class="modal-label">आजबाट:</span>
+              <span id="dm-diff" class="modal-value">—</span>
+            </li>
+            <li id="dm-fest-li" class="modal-list-item" style="display:none;">
+              <span class="modal-label">कार्यक्रमहरू:</span>
+              <span id="dm-fest" class="modal-value">—</span>
+            </li>
+            <li id="dm-note-li" class="modal-list-item" style="display:none;">
+              <span class="modal-label">नोटहरू:</span>
+              <div class="note-display">
+                <span id="dm-note" class="modal-value">—</span>
+                <div class="note-actions">
+                  <button id="edit-note" class="note-btn edit-btn">Edit</button>
+                  <button id="delete-note" class="note-btn delete-btn">Delete</button>
+                </div>
+              </div>
+            </li>
+          </ul>
+          
+          <!-- Note Input Form -->
+          <div id="note-form-container" class="note-form-container" style="display: none;">
+            <h4 class="note-form-title">Add/Edit Note</h4>
+            <textarea id="note-input" class="note-input" placeholder="Write your note here..." rows="4"></textarea>
+            <div class="note-form-actions">
+              <button id="save-note" class="note-btn save-btn">Save Note</button>
+              <button id="cancel-note" class="note-btn cancel-btn">Cancel</button>
+            </div>
+          </div>
+        </div>
+        
+        <button class="modal-close" id="modal-close" aria-label="बन्द">✕</button>
       </div>
     </div>
   </div>
