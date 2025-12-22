@@ -1,57 +1,75 @@
+
 <!DOCTYPE html>
-<html lang="ne" data-theme="light">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-  <title id="page-title">Nepali Patro - Loading...</title>
-
+  <title id="page-title">Nepali PatroX - Calendar</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Nepali PatroX - Nepali Calendar with currency converter, date converter, notes, and daily updates. Convert BS to AD dates easily.">
+  <meta name="keywords" content="nepali patrox, nepali patro, nepali calendar, bs to ad converter, currency converter, forex rate, notes, nepal time">
+  <meta name="author" content="Nepali PatroX">
+  <meta property="og:title" content="Nepali PatroX - Complete Nepali Calendar">
+  <meta property="og:description" content="Free Nepali Calendar with date converter, currency converter, notes and festival tracking.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Nepali PatroX">
+  <meta name="twitter:description" content="Your complete Nepali calendar solution">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
+  <meta name="theme-color" content="#E50914">
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+  
+  <!-- PWA manifest (optional) -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
-<body>
+
+<body class="loading">
   <!-- Header -->
   <header class="header">
     <div class="header-inner">
-      <div class="header-main">
-        <h1 class="logo">Nepali Patro</h1>
-        <div class="header-right">
-          <div class="time-container">
-            <iframe
-              title="समय"
-              class="np-time"
-              scrolling="no" border="0" frameborder="0" marginwidth="0" marginheight="0"
-              allowtransparency="true"
-              src="https://www.ashesh.com.np/linknepali-time.php?time_only=yes&font_color=ffffff&aj_time=yes&font_size=14&api=0132x6p573"
-              width="140" height="22">
-            </iframe>
-          </div>
-          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme">
-            <span class="icon-wrap">
-              <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <circle cx="12" cy="12" r="5"></circle>
-                <g class="rays">
-                  <line x1="12" y1="1" x2="12" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="23"></line>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                  <line x1="1" y1="12" x2="3" y2="12"></line>
-                  <line x1="21" y1="12" x2="23" y2="12"></line>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </g>
-              </svg>
-              <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>
-              </svg>
-            </span>
+      <!-- Main Navigation -->
+      <nav class="main-nav" id="main-nav">
+        <div class="nav-left">
+          <h1 class="logo">Nepali Patro<span class="logo-x">X</span></h1>
+        </div>
+        
+        <div class="nav-right">
+          <!-- Mobile menu toggle -->
+          <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
           </button>
         </div>
-      </div>
+        
+        <!-- Navigation Menu -->
+        <ul class="nav-menu" id="nav-menu">
+          <li><a href="index.html" class="nav-link active">Home</a></li>
+          <li><a href="Forex.html" class="nav-link" target="_blank">Forex</a></li>
+          <li><a href="Rashifal.html" class="nav-link" target="_blank">Horoscope</a></li>
+          <li><a href="GoldRate.html" class="nav-link" target="_blank">Gold/Silver</a></li>
+        </ul>
+      </nav>
       
+      <!-- Today Info -->
       <div class="header-info">
-        <p id="header-today" class="today-info" aria-live="polite"></p>
+        <p id="header-today" class="today-info" aria-live="polite">
+          <!-- Dynamic content will be inserted here -->
+        </p>
       </div>
     </div>
   </header>
@@ -102,21 +120,21 @@
             <table id="calendar-table" role="grid" aria-label="Monthly calendar"></table>
           </div>
           
-          <!-- Quick Links under Calendar -->
-          <section class="quick-links-under-calendar">
-            <div class="links-grid">
-              <a class="link-item" href="ShuvSait.html" target="_blank" rel="noopener">Shuv Sait</a>
-              <a class="link-item" href="Rashifal.html" target="_blank" rel="noopener">Rashifal</a>
-              <a class="link-item" href="GoldRate.html" target="_blank" rel="noopener">Gold Rate</a>
-              <a class="link-item" href="Vegetablesrate.html" target="_blank" rel="noopener">Vegetables Rate</a>
-              <a class="link-item" href="Forex.html" target="_blank" rel="noopener">Forex</a>
-            </div>
+          <!-- SEO Content Below Calendar -->
+          <section class="seo-content">
+            <h2 class="seo-title">Nepali PatroX - Your Complete Nepali Calendar Solution</h2>
+            <p>Nepali PatroX provides the most accurate and up-to-date Nepali calendar (पात्रो) with Bikram Sambat dates. Our calendar includes all Nepali festivals, holidays, and important dates from 2000 BS to 2099 BS. Track dates in both Nepali and English formats seamlessly.</p>
+            <p>Convert any date between Bikram Sambat (BS) and Gregorian (AD) calendars instantly. Our date converter supports precise conversion for planning events, festivals, and appointments. Perfect for Nepali diaspora worldwide who need to coordinate dates across calendars.</p>
+            <p>Get live foreign exchange rates from Nepal Rastra Bank (NRB). Convert between USD, EUR, GBP, CAD, AUD, CHF, JPY, CNY, INR to NPR and vice versa. Essential for remittance tracking, travel planning, and business transactions involving Nepali Rupees.</p>
+            <p>Add custom notes to any date in the Nepali calendar. Mark birthdays, anniversaries, meetings, and important deadlines. Your notes are securely stored in your browser and sync across sessions. Never miss important Nepali dates again.</p>
+            <p>Stay updated with all upcoming Nepali festivals like Dashain, Tihar, Holi, Buddha Jayanti, and other public holidays. Get countdowns and descriptions for each festival to help with planning celebrations and vacations.</p>
+            <p>Accurate sunrise and sunset times for Kathmandu, Nepal. Essential for religious ceremonies, daily prayers (puja), and planning outdoor activities according to Nepali time traditions.</p>
           </section>
         </section>
 
         <!-- Sidebar -->
         <aside class="sidebar">
-          <!-- Sunrise/Sunset -->
+          <!-- Sun Timings -->
           <section class="sun-card" role="region" aria-label="Sunrise and Sunset">
             <h2 class="card-title">Sun Timings</h2>
             <div class="sun-grid">
@@ -147,9 +165,11 @@
 
           <!-- Upcoming Festivals -->
           <section class="upcoming-card" aria-label="Upcoming festivals">
-            <h2 class="card-title">आगामी पर्वहरू</h2>
+            <h2 class="card-title">आगामी कार्यक्रम</h2>
             <div class="upcoming-container">
-              <ul id="upcoming-list" class="upcoming-list" aria-live="polite"></ul>
+              <ul id="upcoming-list" class="upcoming-list" aria-live="polite">
+                <!-- Events will be loaded here -->
+              </ul>
             </div>
           </section>
 
@@ -166,36 +186,106 @@
             </div>
           </section>
 
-          <!-- Forex Rates -->
-          <section class="forex-card">
-            <h2 class="card-title">Forex Rates</h2>
-            <div class="forex-controls">
-              <input type="date" id="forex-date-picker" class="forex-date-input">
-              <button id="forex-load-btn" class="forex-load-btn">Load Rates</button>
+          <!-- Date Converter -->
+          <section class="converter-card compact">
+            <h2 class="card-title">वि.स./ई.स. मिति परिवर्तन</h2>
+            
+            <div class="converter-toggle">
+              <button class="toggle-btn active" data-mode="ad-to-bs">ई.स. → वि.स.</button>
+              <button class="toggle-btn" data-mode="bs-to-ad">वि.स. → ई.स.</button>
             </div>
-            <div class="forex-container">
-              <div id="forex-loader" class="forex-loader">
-                <div class="loader-spinner"></div>
-                <span>Loading forex rates...</span>
+            
+            <div class="converter-form active" id="ad-to-bs-form">
+              <div class="converter-input-row">
+                <select id="ad-month-input">
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+                <input type="number" id="ad-day-input" placeholder="Day" min="1" max="31" value="12">
+                <input type="number" id="ad-year-input" placeholder="Year (AD)" min="1943" max="2042" value="2025">
               </div>
-              <div id="forex-error" class="forex-error" style="display: none;">
-                <span>⚠️ Unable to load forex rates</span>
-                <button id="forex-retry" class="forex-retry">Retry</button>
+              <button id="convert-ad-to-bs-btn" class="convert-btn">परिवर्तन गर्नुहोस्</button>
+              <div id="ad-to-bs-result" class="converter-result" style="display: none;"></div>
+            </div>
+            
+            <div class="converter-form" id="bs-to-ad-form">
+              <div class="converter-input-row">
+                <select id="bs-month-input">
+                  <option value="0">बैशाख</option>
+                  <option value="1">जेठ</option>
+                  <option value="2">असार</option>
+                  <option value="3">साउन</option>
+                  <option value="4">भदौ</option>
+                  <option value="5">असोज</option>
+                  <option value="6">कार्तिक</option>
+                  <option value="7">मंसिर</option>
+                  <option value="8">पौष</option>
+                  <option value="9">माघ</option>
+                  <option value="10">फागुन</option>
+                  <option value="11">चैत्र</option>
+                </select>
+                <input type="number" id="bs-day-input" placeholder="Day" min="1" max="32" value="26">
+                <input type="number" id="bs-year-input" placeholder="Year (BS)" min="2000" max="2099" value="2082">
               </div>
-              <div id="forex-content" class="forex-content" style="display: none;">
-                <div class="forex-header">
-                  <span>Currency</span>
-                  <span>Unit</span>
-                  <span>Buy (NRs)</span>
-                  <span>Sell (NRs)</span>
+              <button id="convert-bs-to-ad-btn" class="convert-btn">परिवर्तन गर्नुहोस्</button>
+              <div id="bs-to-ad-result" class="converter-result" style="display: none;"></div>
+            </div>
+          </section>
+
+          <!-- Currency Converter -->
+          <section class="currency-converter-card">
+            <h2 class="card-title">मुद्रा परिवर्तन</h2>
+            <div class="currency-converter-form">
+              <div class="currency-input-row">
+                <div class="currency-amount-wrapper">
+                  <input type="number" id="currency-amount" class="currency-amount" value="1" min="0.01" step="0.01" placeholder="रकम">
                 </div>
-                <div id="forex-rates" class="forex-rates">
-                  <!-- Forex rates will be loaded here -->
+                
+                <div class="currency-select-wrapper">
+                  <select id="from-currency" class="currency-select">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="CAD">CAD</option>
+                    <option value="AUD">AUD</option>
+                    <option value="CHF">CHF</option>
+                    <option value="JPY">JPY</option>
+                    <option value="CNY">CNY</option>
+                    <option value="INR">INR</option>
+                    <option value="NPR">NPR</option>
+                  </select>
+                  <span class="currency-arrow">→</span>
+                  <select id="to-currency" class="currency-select">
+                    <option value="NPR">NPR</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="CAD">CAD</option>
+                    <option value="AUD">AUD</option>
+                    <option value="CHF">CHF</option>
+                    <option value="JPY">JPY</option>
+                    <option value="CNY">CNY</option>
+                    <option value="INR">INR</option>
+                  </select>
                 </div>
-                <div class="forex-footer">
-                  <small id="forex-update-time"></small>
-                  <small>Source: NRB</small>
-                </div>
+              </div>
+              
+              <button id="convert-currency-btn" class="convert-btn">परिवर्तन गर्नुहोस्</button>
+              <div id="currency-result" class="converter-result" style="display: none;"></div>
+              
+              <div class="currency-footer">
+                <small id="currency-update-time">Rates updated: --</small>
+                <a href="Forex.html" class="view-forex-link" target="_blank">View Detailed Forex</a>
               </div>
             </div>
           </section>
@@ -203,6 +293,22 @@
       </div>
     </div>
   </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-logo">Nepali Patro<span class="logo-x">X</span></div>
+      <div class="footer-links">
+        <a href="index.html" class="footer-link">Home</a>
+        <a href="Forex.html" class="footer-link" target="_blank">Forex</a>
+        <a href="Rashifal.html" class="footer-link" target="_blank">Horoscope</a>
+        <a href="GoldRate.html" class="footer-link" target="_blank">Gold/Silver</a>
+      </div>
+      <div class="footer-copyright">
+        <p class="copyright">© <span id="current-year"></span> Nepali PatroX. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
 
   <!-- Day Info Modal -->
   <div id="day-modal" class="day-modal" aria-hidden="true" role="dialog">
@@ -237,6 +343,10 @@
             <li class="modal-list-item">
               <span class="modal-label">तिथि:</span>
               <span id="dm-tithi" class="modal-value">—</span>
+            </li>
+            <li id="dm-season-li" class="modal-list-item" style="display:none;">
+              <span class="modal-label">ऋतु:</span>
+              <span id="dm-season" class="modal-value">—</span>
             </li>
             <li id="dm-diff-li" class="modal-list-item" style="display:none;">
               <span class="modal-label">आजबाट:</span>
@@ -274,8 +384,32 @@
     </div>
   </div>
 
+  <!-- Note Delete Confirmation Popup -->
+  <div id="delete-confirm-modal" class="delete-confirm-modal" aria-hidden="true">
+    <div class="delete-modal-overlay"></div>
+    <div class="delete-modal-container">
+      <div class="delete-modal-content">
+        <h3>Delete Note</h3>
+        <p>Are you sure you want to delete this note? This action cannot be undone.</p>
+        <div class="delete-modal-actions">
+          <button id="delete-confirm-btn" class="delete-confirm-btn">Delete</button>
+          <button id="delete-cancel-btn" class="delete-cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="data.js"></script>
   <script src="app.js" defer></script>
+  
+  <script>
+    // Set current year in footer
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+    
+    // Remove loading class when page loads
+    window.addEventListener('load', function() {
+      document.body.classList.remove('loading');
+    });
+  </script>
 </body>
 </html>
-
