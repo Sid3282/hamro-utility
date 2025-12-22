@@ -1,4 +1,5 @@
 // ===== data from data.js =====
+
 const {
   nepaliMonths,
   nepaliWeekdaysFull,
@@ -23,9 +24,10 @@ const todayBtn = document.getElementById("today-btn");
 const periodLabelEl = document.getElementById("period-label");
 const tableEl = document.getElementById("calendar-table");
 const upcomingList = document.getElementById("upcoming-list");
-const themeToggle = document.getElementById("theme-toggle");
 const headerTodayEl = document.getElementById("header-today");
 const pageTitleEl = document.getElementById("page-title");
+const mobileMenuToggle = document.getElementById("mobile-menu-toggle");
+const navMenu = document.getElementById("nav-menu");
 
 // Notes elements
 const notesList = document.getElementById("notes-list");
@@ -38,10 +40,34 @@ const deleteNoteBtn = document.getElementById("delete-note");
 const noteFormContainer = document.getElementById("note-form-container");
 const dmNoteLi = document.getElementById("dm-note-li");
 const dmNote = document.getElementById("dm-note");
+const dmSeasonLi = document.getElementById("dm-season-li");
+const dmSeason = document.getElementById("dm-season");
+
+// Date Converter elements
+const converterToggleBtns = document.querySelectorAll('.toggle-btn');
+const bsToAdForm = document.getElementById('bs-to-ad-form');
+const adToBsForm = document.getElementById('ad-to-bs-form');
+const convertBsToAdBtn = document.getElementById('convert-bs-to-ad-btn');
+const convertAdToBsBtn = document.getElementById('convert-ad-to-bs-btn');
+const bsToAdResult = document.getElementById('bs-to-ad-result');
+const adToBsResult = document.getElementById('ad-to-bs-result');
+
+// Currency Converter elements
+const currencyAmountInput = document.getElementById('currency-amount');
+const fromCurrencySelect = document.getElementById('from-currency');
+const toCurrencySelect = document.getElementById('to-currency');
+const convertCurrencyBtn = document.getElementById('convert-currency-btn');
+const currencyResult = document.getElementById('currency-result');
+const currencyUpdateTime = document.getElementById('currency-update-time');
+
+// Delete Confirmation Modal elements
+const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
+const deleteCancelBtn = document.getElementById('delete-cancel-btn');
 
 /* Epoch & conversions */
-const EPOCH_AD = { y: 2025, m: 4, d: 14 };
-const EPOCH_WEEKDAY_SUN0 = 1;
+const EPOCH_AD = { y: 1943, m: 4, d: 14 };
+const EPOCH_WEEKDAY_SUN0 = 3;
 
 function isLeapAD(y) {
   return (y % 4 === 0) && (y % 100 !== 0 || y % 400 === 0);
@@ -121,15 +147,18 @@ function adToBs(adDate) {
     t = Date.UTC(adDate.getFullYear(), adDate.getMonth(), adDate.getDate());
   const e = Date.UTC(EPOCH_AD.y, EPOCH_AD.m - 1, EPOCH_AD.d);
   let delta = Math.floor((t - e) / ms);
+  
   if (delta < 0) return {
     year: getAvailableYears()[0],
     month: 0,
     day: 1,
     outOfRange: true
   };
+  
   const years = getAvailableYears();
   let y = years[0],
     m = 0;
+  
   outer: for (const Y of years) {
     for (let mi = 0; mi < 12; mi++) {
       const len = bsData[Y][mi];
@@ -141,6 +170,7 @@ function adToBs(adDate) {
       delta -= len;
     }
   }
+  
   const d = delta + 1;
   const last = years[years.length - 1];
   return {
@@ -149,6 +179,114 @@ function adToBs(adDate) {
     day: d,
     outOfRange: (y === last && d > bsData[last][m])
   };
+}
+
+/* Date Converter Functions */
+function validateBSDate(bsYear, bsMonth, bsDay) {
+  if (!hasYear(bsYear)) {
+    return { error: "Invalid BS year. Must be between 2000-2099" };
+  }
+  
+  if (bsMonth < 0 || bsMonth > 11) {
+    return { error: "Invalid BS month. Must be 0-11" };
+  }
+  
+  const daysInMonth = bsMonthDays(bsYear, bsMonth);
+  if (bsDay < 1 || bsDay > daysInMonth) {
+    return { error: `Invalid BS day. Must be 1-${daysInMonth} for ${nepaliMonths[bsMonth]}` };
+  }
+  
+  return { valid: true };
+}
+
+function validateADDate(adYear, adMonth, adDay) {
+  const adDate = new Date(adYear, adMonth - 1, adDay);
+  
+  if (isNaN(adDate.getTime())) {
+    return { error: "Invalid AD date" };
+  }
+  
+  const minAD = new Date(1943, 3, 14);
+  const maxAD = new Date(2042, 3, 13);
+  
+  if (adDate < minAD || adDate > maxAD) {
+    return { error: "Date must be between 14 April 1943 and 13 April 2042" };
+  }
+  
+  return { valid: true };
+}
+
+function bsToAdConverter(bsYear, bsMonth, bsDay) {
+  const validation = validateBSDate(bsYear, bsMonth, bsDay);
+  if (validation.error) return validation;
+  
+  const adParts = bsToAdParts(bsYear, bsMonth, bsDay);
+  if (!adParts) {
+    return { error: "Conversion failed" };
+  }
+  
+  const weekday = nepaliWeekdaysFull[adParts.w];
+  const adDate = new Date(adParts.y, adParts.m - 1, adParts.d);
+  const formattedDate = adDate.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+  
+  return {
+    success: true,
+    bsYear,
+    bsMonth,
+    bsDay,
+    adYear: adParts.y,
+    adMonth: adParts.m,
+    adDay: adParts.d,
+    weekday: weekday,
+    formattedDate: formattedDate,
+    isSaturday: weekday === 'शनिबार'
+  };
+}
+
+function adToBsConverter(adYear, adMonth, adDay) {
+  const validation = validateADDate(adYear, adMonth, adDay);
+  if (validation.error) return validation;
+  
+  const adDate = new Date(adYear, adMonth - 1, adDay);
+  const bsResult = adToBs(adDate);
+  
+  if (bsResult.outOfRange) {
+    return { error: "Date is out of conversion range" };
+  }
+  
+  const weekdayNum = adDate.getDay();
+  const weekday = nepaliWeekdaysFull[weekdayNum];
+  
+  return {
+    success: true,
+    bsResult: bsResult,
+    weekday: weekday,
+    isSaturday: weekday === 'शनिबार'
+  };
+}
+
+/* Season Function */
+function getSeasonForMonth(bsMonth) {
+  const seasons = [
+    { name: "बसन्त (Spring)", months: [11, 0] }, // Chaitra, Baisakh
+    { name: "ग्रीष्म (Summer)", months: [1, 2] }, // Jestha, Ashadh
+    { name: "वर्षा (Monsoon)", months: [3, 4] }, // Shrawan, Bhadra
+    { name: "शरद (Autumn)", months: [5, 6] }, // Ashwin, Kartik
+    { name: "हेमन्त (Pre-Winter)", months: [7, 8] }, // Mangsir, Poush
+    { name: "शिशिर (Winter)", months: [9, 10] }, // Magh, Falgun
+  ];
+  
+  for (const season of seasons) {
+    if (season.months.includes(bsMonth)) {
+      return season.name;
+    }
+  }
+  
+  return "";
 }
 
 /* tithi approximation */
@@ -179,19 +317,17 @@ function tithiForAD(y, m, d) {
 
 /* Notes Functionality */
 let notes = JSON.parse(localStorage.getItem('np_notes') || '{}');
-let currentNoteDate = null; // Format: "YYYY-MM-DD-BSYear-BSMonth-BSDay"
+let currentNoteDate = null;
+let pendingDeleteDateKey = null;
 
-// Save notes to localStorage
 function saveNotes() {
   localStorage.setItem('np_notes', JSON.stringify(notes));
 }
 
-// Get note for specific date
 function getNote(dateKey) {
   return notes[dateKey] || null;
 }
 
-// Save note for specific date
 function saveNote(dateKey, noteText) {
   if (noteText.trim()) {
     notes[dateKey] = {
@@ -207,7 +343,6 @@ function saveNote(dateKey, noteText) {
   renderNotesList();
 }
 
-// Delete note for specific date
 function deleteNote(dateKey) {
   if (notes[dateKey]) {
     delete notes[dateKey];
@@ -219,12 +354,10 @@ function deleteNote(dateKey) {
   return false;
 }
 
-// Generate date key
 function generateDateKey(year, month, day) {
   return `${year}-${month}-${day}`;
 }
 
-// Update calendar with note indicators
 function updateCalendarNotes() {
   const cells = tableEl.querySelectorAll('td:not(.empty)');
   cells.forEach(cell => {
@@ -244,7 +377,6 @@ function updateCalendarNotes() {
   });
 }
 
-// Render notes list in sidebar
 function renderNotesList() {
   notesList.innerHTML = '';
   
@@ -259,17 +391,18 @@ function renderNotesList() {
   notesEmpty.style.display = 'none';
   notesList.style.display = 'grid';
   
-  // Sort notes by creation date (newest first)
   noteEntries.sort((a, b) => {
     const dateA = new Date(b[1].created || 0);
     const dateB = new Date(a[1].created || 0);
     return dateA - dateB;
   });
   
-  // Display only latest 5 notes
   noteEntries.slice(0, 5).forEach(([dateKey, note]) => {
     const [year, month, day] = dateKey.split('-').map(Number);
     const monthName = nepaliMonths[month];
+    const adParts = bsToAdParts(year, month, day);
+    const weekday = adParts ? nepaliWeekdaysFull[adParts.w] : '';
+    const isSaturday = weekday === 'शनिबार';
     
     const li = document.createElement('li');
     li.className = 'note-item';
@@ -277,7 +410,7 @@ function renderNotesList() {
     
     li.innerHTML = `
       <div class="note-item-header">
-        <div class="note-date">${monthName} ${toNepNum(day)}, ${toNepNum(year)}</div>
+        <div class="note-date ${isSaturday ? 'saturday' : ''}">${monthName} ${toNepNum(day)}, ${toNepNum(year)}</div>
         <div class="note-actions-sidebar">
           <button class="note-btn-sidebar edit-note-sidebar" title="Edit">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -297,7 +430,6 @@ function renderNotesList() {
       <div class="note-content">${note.text}</div>
     `;
     
-    // Add event listeners for sidebar note actions
     li.querySelector('.edit-note-sidebar').addEventListener('click', (e) => {
       e.stopPropagation();
       openNoteEditor(dateKey, year, month, day);
@@ -305,18 +437,43 @@ function renderNotesList() {
     
     li.querySelector('.delete-note-sidebar').addEventListener('click', (e) => {
       e.stopPropagation();
-      if (confirm('Delete this note?')) {
-        deleteNote(dateKey);
-      }
+      showDeleteConfirmation(dateKey);
     });
     
-    // Click on note item to open modal
     li.addEventListener('click', () => {
       openDayModalForDate(year, month, day);
     });
     
     notesList.appendChild(li);
   });
+}
+
+/* Delete Confirmation Modal Functions */
+function showDeleteConfirmation(dateKey) {
+  pendingDeleteDateKey = dateKey;
+  deleteConfirmModal.classList.add('show');
+  deleteConfirmModal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideDeleteConfirmation() {
+  deleteConfirmModal.classList.remove('show');
+  deleteConfirmModal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+  pendingDeleteDateKey = null;
+}
+
+function confirmDelete() {
+  if (pendingDeleteDateKey) {
+    deleteNote(pendingDeleteDateKey);
+    if (currentNoteDate === pendingDeleteDateKey) {
+      dmNoteLi.style.display = 'none';
+      noteFormContainer.style.display = 'block';
+      noteInput.value = '';
+      currentNoteDate = null;
+    }
+    hideDeleteConfirmation();
+  }
 }
 
 /* Calendar grid generation */
@@ -345,21 +502,18 @@ function getADMonthSpanWithYear(month, year) {
   const s = bsToAdParts(year, month, 1);
   const e = bsToAdParts(year, month, bsMonthDays(year, month));
   const span = (adMonthsShort[s.m - 1] === adMonthsShort[e.m - 1]) ?
-    adMonthsShort[s.m - 1] :
+    adMonthsShort[s.m - 1] : 
     `${adMonthsShort[s.m-1]}/${adMonthsShort[e.m-1]}`;
   return `${nepaliMonths[month]} ${toNepNum(year)} | ${span} ${e.y}`;
 }
 
 function generateCalendar(month, year, todayBs) {
-  // Clear table
   while (tableEl.firstChild) {
     tableEl.firstChild.remove();
   }
   
-  // Add header
   tableEl.appendChild(buildHeaderRow());
   
-  // Create tbody
   const tbody = document.createElement("tbody");
   tableEl.appendChild(tbody);
   
@@ -367,7 +521,6 @@ function generateCalendar(month, year, todayBs) {
   const start = getStartDay(year, month);
   const yearHolidays = holidaysByYear[year] || [];
   
-  // Helper to get holiday info for a specific day
   const getHolidayInfo = (m, d) => {
     const items = yearHolidays.filter(h => h.month === m && h.day === d);
     return {
@@ -378,14 +531,12 @@ function generateCalendar(month, year, todayBs) {
   
   let date = 1;
   
-  // Generate calendar rows (max 6 rows)
   for (let row = 0; row < 6; row++) {
     const tr = document.createElement("tr");
     
     for (let col = 0; col < 7; col++) {
       const td = document.createElement("td");
       
-      // Empty cells at the beginning
       if (row === 0 && col < start) {
         td.className = "empty";
         td.setAttribute("aria-hidden", "true");
@@ -393,7 +544,6 @@ function generateCalendar(month, year, todayBs) {
         continue;
       }
       
-      // Empty cells after the month ends
       if (date > dim) {
         td.className = "empty";
         td.setAttribute("aria-hidden", "true");
@@ -416,7 +566,6 @@ function generateCalendar(month, year, todayBs) {
       const dateKey = generateDateKey(year, month, dayVal);
       const hasNote = notes[dateKey];
       
-      // Build CSS classes
       const classes = [];
       if (col === 6) classes.push("is-sat");
       if (isToday) classes.push("today");
@@ -424,17 +573,17 @@ function generateCalendar(month, year, todayBs) {
       if (hasNote) classes.push("has-note");
       td.className = classes.join(" ");
       
-      // Cell content
+      const isMobile = window.innerWidth < 768;
+      
       td.innerHTML = `
         <div class="cell-top">
           <span class="bs-day">${toNepNum(dayVal)}</span>
         </div>
-        ${festival ? `<span class="festival" title="${festival}">${festival}</span>` : ''}
-        <span class="tithi">${tithi}</span>
+        ${!isMobile && festival ? `<span class="festival" title="${festival}">${festival}</span>` : ''}
+        ${!isMobile ? `<span class="tithi">${tithi}</span>` : ''}
         <span class="ad-date">${adLabel}</span>
       `;
       
-      // Click handler for day details
       td.addEventListener("click", () => {
         const adParts = bsToAdParts(year, month, dayVal);
         openDayModal({
@@ -449,7 +598,6 @@ function generateCalendar(month, year, todayBs) {
         });
       });
       
-      // Touch device optimizations
       td.addEventListener("touchstart", (e) => {
         e.currentTarget.classList.add("touch-active");
       }, { passive: true });
@@ -466,13 +614,13 @@ function generateCalendar(month, year, todayBs) {
     if (date > dim) break;
   }
   
-  // Update period label
   periodLabelEl.textContent = getADMonthSpanWithYear(month, year);
+  updateCalendarNotes();
 }
 
 /* Sunrise/Sunset functionality */
-const SUN_LAT = 28.108393;
-const SUN_LON = 84.091713;
+const SUN_LAT = 27.7172;
+const SUN_LON = 85.3240;
 const NPT_TZ = 'Asia/Kathmandu';
 const timeFmt = new Intl.DateTimeFormat('en-NP', {
   timeZone: NPT_TZ,
@@ -528,7 +676,6 @@ async function loadSunTimesTodayAndSchedule() {
     if (sunriseEl) sunriseEl.textContent = times.sunrise;
     if (sunsetEl) sunsetEl.textContent = times.sunset;
     
-    // Schedule next update for midnight NPT
     const now = new Date();
     const nowNPT = new Date(now.toLocaleString('en-US', { timeZone: NPT_TZ }));
     const tomorrowNPT = new Date(nowNPT);
@@ -536,136 +683,233 @@ async function loadSunTimesTodayAndSchedule() {
     tomorrowNPT.setHours(0, 0, 0, 0);
     
     const nextUpdateUTC = new Date(tomorrowNPT.toLocaleString('en-US', { timeZone: 'UTC' }));
-    const delay = nextUpdateUTC.getTime() - now.getTime() + 10000; // +10 seconds buffer
+    const delay = nextUpdateUTC.getTime() - now.getTime() + 10000;
     
     setTimeout(loadSunTimesTodayAndSchedule, Math.max(delay, 60000));
   } catch (error) {
     console.error('Error in sun times schedule:', error);
-    // Retry after 5 minutes on error
     setTimeout(loadSunTimesTodayAndSchedule, 300000);
   }
 }
 
-/* Forex Rate Functionality - Using Working NRB API */
-const API_BASE = 'https://www.nrb.org.np/api/forex/v1';
+/* Currency Converter Functionality */
+let forexRates = {};
+let forexLastUpdated = null;
 
-const forexDatePicker = document.getElementById('forex-date-picker');
-const forexLoadBtn = document.getElementById('forex-load-btn');
-const forexLoader = document.getElementById('forex-loader');
-const forexContent = document.getElementById('forex-content');
-const forexRates = document.getElementById('forex-rates');
-const forexError = document.getElementById('forex-error');
-const forexRetry = document.getElementById('forex-retry');
-const forexUpdateTime = document.getElementById('forex-update-time');
-
-function todayYMD() {
-  const d = new Date();
-  return d.toISOString().split('T')[0];
+// Fetch current forex rates from NRB API
+async function fetchCurrentForexRates() {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const url = `https://www.nrb.org.np/api/forex/v1/rates?from=${today}&to=${today}&per_page=100&page=1`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    const payload = data?.data?.payload ?? data?.data;
+    
+    if (!payload || !payload.length) {
+      throw new Error('No forex data available');
+    }
+    
+    const dayData = payload[0];
+    const rates = dayData.rates || [];
+    
+    if (!rates.length) {
+      throw new Error('No rates available');
+    }
+    
+    // Process rates into a usable format
+    const processedRates = {};
+    
+    rates.forEach(rate => {
+      const currencyCode = rate.currency?.iso3;
+      if (currencyCode) {
+        const unit = parseInt(rate.currency?.unit) || 1;
+        const buy = parseFloat(rate.buy) || 0;
+        const sell = parseFloat(rate.sell) || 0;
+        
+        processedRates[currencyCode] = {
+          buy: buy / unit,
+          sell: sell / unit,
+          unit: unit,
+          name: rate.currency?.name || currencyCode
+        };
+      }
+    });
+    
+    // Add NPR rate (always 1:1)
+    processedRates['NPR'] = {
+      buy: 1,
+      sell: 1,
+      unit: 1,
+      name: 'Nepalese Rupee'
+    };
+    
+    forexRates = processedRates;
+    forexLastUpdated = new Date();
+    
+    return processedRates;
+    
+  } catch (error) {
+    console.error('Error fetching forex rates from NRB:', error);
+    // Fallback to static rates if API fails
+    const fallbackRates = {
+      'USD': { buy: 133.20, sell: 133.80, unit: 1, name: 'US Dollar' },
+      'EUR': { buy: 142.50, sell: 143.20, unit: 1, name: 'Euro' },
+      'GBP': { buy: 168.30, sell: 169.00, unit: 1, name: 'British Pound' },
+      'CAD': { buy: 97.50, sell: 98.00, unit: 1, name: 'Canadian Dollar' },
+      'AUD': { buy: 87.80, sell: 88.30, unit: 1, name: 'Australian Dollar' },
+      'CHF': { buy: 148.20, sell: 148.90, unit: 1, name: 'Swiss Franc' },
+      'JPY': { buy: 0.88, sell: 0.89, unit: 100, name: 'Japanese Yen' },
+      'CNY': { buy: 18.40, sell: 18.50, unit: 1, name: 'Chinese Yuan' },
+      'INR': { buy: 1.60, sell: 1.61, unit: 100, name: 'Indian Rupee' },
+      'NPR': { buy: 1, sell: 1, unit: 1, name: 'Nepalese Rupee' }
+    };
+    
+    forexRates = fallbackRates;
+    forexLastUpdated = new Date();
+    return fallbackRates;
+  }
 }
 
-// Set default date to today
-forexDatePicker.value = todayYMD();
-
-async function fetchRates(date) {
-  const url = `${API_BASE}/rates?from=${date}&to=${date}&per_page=100&page=1`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("API Error " + res.status);
-  return await res.json();
-}
-
-function renderRates(payload) {
-  forexRates.innerHTML = '';
-
-  if (!payload || !payload.length) {
-    showError("No forex data available for selected date.");
-    return;
-  }
-
-  const day = payload[0];
-  const rates = day.rates || [];
-
-  if (!rates.length) {
-    showError("No rates available.");
-    return;
-  }
-
-  // Hide loader and error, show content
-  forexLoader.style.display = 'none';
-  forexError.style.display = 'none';
-  forexContent.style.display = 'block';
-
-  // Sort rates: USD first, then EUR, GBP, then others
-  const sortedRates = [...rates].sort((a, b) => {
-    const order = { 'USD': 1, 'EUR': 2, 'GBP': 3, 'INR': 4 };
-    const aOrder = order[a.currency?.iso3] || 99;
-    const bOrder = order[b.currency?.iso3] || 99;
-    if (aOrder !== bOrder) return aOrder - bOrder;
-    return (a.currency?.iso3 || '').localeCompare(b.currency?.iso3 || '');
+// Initialize currency converter
+function initCurrencyConverter() {
+  currencyAmountInput.value = '1';
+  fromCurrencySelect.value = 'USD';
+  toCurrencySelect.value = 'NPR';
+  
+  loadCurrencyRates();
+  
+  convertCurrencyBtn.addEventListener('click', performCurrencyConversion);
+  
+  currencyAmountInput.addEventListener('input', function() {
+    if (this.value && parseFloat(this.value) > 0) {
+      performCurrencyConversion();
+    }
   });
+  
+  fromCurrencySelect.addEventListener('change', performCurrencyConversion);
+  toCurrencySelect.addEventListener('change', performCurrencyConversion);
+}
 
-  // Display rates
-  sortedRates.forEach(r => {
-    const rateItem = document.createElement('div');
-    rateItem.className = 'forex-rate-item';
+// Load currency rates
+async function loadCurrencyRates() {
+  try {
+    await fetchCurrentForexRates();
     
-    const currencyCode = r.currency?.iso3 || 'N/A';
-    const currencyName = r.currency?.name || currencyCode;
-    const unit = r.currency?.unit || 1;
-    const buy = r.buy ? parseFloat(r.buy).toFixed(2) : '—';
-    const sell = r.sell ? parseFloat(r.sell).toFixed(2) : '—';
+    if (forexLastUpdated) {
+      const timeString = forexLastUpdated.toLocaleTimeString('en-NP', {
+        timeZone: 'Asia/Kathmandu',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      const dateString = forexLastUpdated.toLocaleDateString('en-NP', {
+        timeZone: 'Asia/Kathmandu',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+      currencyUpdateTime.textContent = `Rates updated: ${dateString} ${timeString}`;
+    }
     
-    rateItem.innerHTML = `
-      <div class="forex-currency" title="${currencyName}">
-        <span>${currencyCode}</span>
-      </div>
-      <div class="forex-unit">${unit}</div>
-      <div class="forex-rate">${buy}</div>
-      <div class="forex-rate">${sell}</div>
+  } catch (error) {
+    console.error('Failed to load currency rates:', error);
+    currencyUpdateTime.textContent = 'Using fallback rates';
+  }
+}
+
+// Perform currency conversion
+function performCurrencyConversion() {
+  const amount = parseFloat(currencyAmountInput.value);
+  const fromCurrency = fromCurrencySelect.value;
+  const toCurrency = toCurrencySelect.value;
+  
+  currencyResult.style.display = 'block';
+  
+  if (isNaN(amount) || amount <= 0) {
+    currencyResult.className = 'converter-result error';
+    currencyResult.innerHTML = '<span>Please enter a valid amount</span>';
+    return;
+  }
+  
+  if (!forexRates[fromCurrency] || !forexRates[toCurrency]) {
+    currencyResult.className = 'converter-result error';
+    currencyResult.innerHTML = `<span>Rate not available for ${fromCurrency} → ${toCurrency}</span>`;
+    return;
+  }
+  
+  try {
+    let convertedAmount;
+    let rateDetails;
+    
+    if (fromCurrency === 'NPR') {
+      const toRate = forexRates[toCurrency];
+      convertedAmount = amount / toRate.buy;
+      rateDetails = `1 ${toCurrency} = ${toRate.buy.toFixed(2)} NPR`;
+      
+    } else if (toCurrency === 'NPR') {
+      const fromRate = forexRates[fromCurrency];
+      convertedAmount = amount * fromRate.buy;
+      rateDetails = `1 ${fromCurrency} = ${fromRate.buy.toFixed(2)} NPR`;
+      
+    } else {
+      const fromRate = forexRates[fromCurrency];
+      const toRate = forexRates[toCurrency];
+      
+      const amountInNPR = amount * fromRate.buy;
+      convertedAmount = amountInNPR / toRate.buy;
+      rateDetails = `1 ${fromCurrency} = ${fromRate.buy.toFixed(2)} NPR`;
+    }
+    
+    const formattedAmount = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
+    
+    const formattedResult = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4
+    }).format(convertedAmount);
+    
+    currencyResult.className = 'converter-result success';
+    currencyResult.innerHTML = `
+      <div class="result-amount">${formattedResult} ${toCurrency}</div>
+      <div class="result-details">${formattedAmount} ${fromCurrency} = ${formattedResult} ${toCurrency}</div>
     `;
     
-    forexRates.appendChild(rateItem);
-  });
-
-  // Update timestamp
-  const now = new Date();
-  const updateTime = now.toLocaleTimeString('en-NP', {
-    timeZone: 'Asia/Kathmandu',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  forexUpdateTime.textContent = `Rates for ${day.date} | Updated: ${updateTime}`;
-}
-
-function showError(message) {
-  forexLoader.style.display = 'none';
-  forexContent.style.display = 'none';
-  forexError.style.display = 'flex';
-  forexError.querySelector('span').textContent = message;
-}
-
-async function loadForexRates() {
-  const date = forexDatePicker.value;
-  
-  // Show loader, hide content and error
-  forexLoader.style.display = 'flex';
-  forexContent.style.display = 'none';
-  forexError.style.display = 'none';
-
-  try {
-    const json = await fetchRates(date);
-    const payload = json?.data?.payload ?? json?.data ?? null;
-    renderRates(payload);
-  } catch (err) {
-    showError("Error: " + err.message);
+  } catch (error) {
+    console.error('Conversion error:', error);
+    currencyResult.className = 'converter-result error';
+    currencyResult.innerHTML = '<span>Conversion failed. Please try again.</span>';
   }
 }
 
-// Load forex rates initially
-loadForexRates();
-
-// Event listeners
-forexLoadBtn.addEventListener('click', loadForexRates);
-forexRetry.addEventListener('click', loadForexRates);
+// Auto-refresh rates every 30 minutes
+function startRateAutoRefresh() {
+  setInterval(async () => {
+    try {
+      await fetchCurrentForexRates();
+      performCurrencyConversion();
+      
+      const timeString = new Date().toLocaleTimeString('en-NP', {
+        timeZone: 'Asia/Kathmandu',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      currencyUpdateTime.textContent = `Rates updated: ${timeString}`;
+    } catch (error) {
+      console.log('Auto-refresh failed:', error);
+    }
+  }, 30 * 60 * 1000);
+}
 
 /* Modal functionality */
 const modal = document.getElementById("day-modal");
@@ -694,8 +938,8 @@ function diffFromTodayText(adY, adM, adD) {
   const diff = Math.round((dayUTC - todayUTC) / 86400000);
   
   if (diff === 0) return "आज";
-  if (diff > 0) return `${diff} दिन पछि`;
-  return `${Math.abs(diff)} दिन पहिले`;
+  if (diff > 0) return `${toNepNum(diff)} दिन बाँकी`;
+  return `${toNepNum(Math.abs(diff))} दिन पहिले`;
 }
 
 // Open note editor
@@ -715,32 +959,36 @@ function closeNoteEditor() {
 }
 
 async function openDayModal({ year, month, day, adParts, weekday, tithi, festival, note }) {
-  // Update modal content
-  elBs.textContent = `${nepaliMonths[month]} ${toNepNum(day)}, ${toNepNum(year)} ${weekday}`;
-  elAd.textContent = new Date(Date.UTC(adParts.y, adParts.m - 1, adParts.d))
-    .toLocaleDateString("en-GB", {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      weekday: 'long'
-    });
+  const monthDisplay = `${nepaliMonths[month]}`;
+  elBs.textContent = `${monthDisplay} ${toNepNum(day)}, ${toNepNum(year)} ${weekday}`;
+  elBs.classList.toggle('saturday', weekday === 'शनिबार');
   
-  // Fetch sun times for the selected day
+  const adDate = new Date(Date.UTC(adParts.y, adParts.m - 1, adParts.d));
+  const adFormatted = adDate.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+  elAd.textContent = adFormatted;
+  
   const selISO = `${adParts.y}-${pad2(adParts.m)}-${pad2(adParts.d)}`;
   const modalSun = await fetchSunTimesForISO(selISO);
   elSunR.textContent = modalSun.sunrise;
   elSunS.textContent = modalSun.sunset;
   
-  // Update other details
   elWeek.textContent = weekday;
+  elWeek.classList.toggle('saturday', weekday === 'शनिबार');
   elTithi.textContent = tithi;
   
-  // Update "days from today" info
+  // Get season
+  const season = getSeasonForMonth(month);
+  dmSeason.textContent = season;
+  dmSeasonLi.style.display = season ? "" : "none";
+  
   const diffText = diffFromTodayText(adParts.y, adParts.m, adParts.d);
   elDiff.textContent = diffText;
   elDiffLi.style.display = "";
   
-  // Update festival info
   if (festival && festival.trim()) {
     elFest.textContent = festival;
     elFestLi.style.display = "";
@@ -748,7 +996,6 @@ async function openDayModal({ year, month, day, adParts, weekday, tithi, festiva
     elFestLi.style.display = "none";
   }
   
-  // Update note info
   const dateKey = generateDateKey(year, month, day);
   currentNoteDate = dateKey;
   const currentNote = note || getNote(dateKey);
@@ -763,15 +1010,12 @@ async function openDayModal({ year, month, day, adParts, weekday, tithi, festiva
     noteInput.value = '';
   }
   
-  // Show modal
   modal.classList.add("show");
   modal.setAttribute("aria-hidden", "false");
-  
-  // Prevent body scrolling
   document.body.style.overflow = "hidden";
 }
 
-// Open modal for specific date (used by notes list)
+// Open modal for specific date
 function openDayModalForDate(year, month, day) {
   const adParts = bsToAdParts(year, month, day);
   const holiday = holidaysByYear[year]?.filter(h => h.month === month && h.day === day) || [];
@@ -802,6 +1046,9 @@ modal.querySelector(".modal-overlay").addEventListener("click", closeDayModal);
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && modal.classList.contains("show")) {
     closeDayModal();
+  }
+  if (e.key === "Escape" && deleteConfirmModal.classList.contains("show")) {
+    hideDeleteConfirmation();
   }
 });
 
@@ -835,14 +1082,15 @@ editNoteBtn.addEventListener("click", () => {
 });
 
 deleteNoteBtn.addEventListener("click", () => {
-  if (currentNoteDate && confirm('Delete this note?')) {
-    if (deleteNote(currentNoteDate)) {
-      dmNoteLi.style.display = "none";
-      noteFormContainer.style.display = 'block';
-      noteInput.value = '';
-    }
+  if (currentNoteDate) {
+    showDeleteConfirmation(currentNoteDate);
   }
 });
+
+// Delete confirmation modal event listeners
+deleteConfirmBtn.addEventListener('click', confirmDelete);
+deleteCancelBtn.addEventListener('click', hideDeleteConfirmation);
+deleteConfirmModal.querySelector('.delete-modal-overlay').addEventListener('click', hideDeleteConfirmation);
 
 /* Update page title with current date */
 function updatePageTitle(todayBs) {
@@ -851,59 +1099,211 @@ function updatePageTitle(todayBs) {
   const monthName = nepaliMonths[todayBs.month];
   const dayNum = toNepNum(todayBs.day);
   
-  pageTitleEl.textContent = `Nepali Patro - ${monthName} ${dayNum}`;
+  pageTitleEl.textContent = `Nepali PatroX - ${monthName} ${dayNum}`;
 }
 
-/* Selector and upcoming festivals functionality */
-function populateSelectors() {
-  const years = getAvailableYears();
-  
-  // Populate year selector
-  yearSelector.innerHTML = "";
-  years.forEach(y => {
-    const option = document.createElement("option");
-    option.value = y;
-    option.textContent = toNepNum(y);
-    yearSelector.appendChild(option);
-  });
-  
-  // Populate month selector
-  monthSelector.innerHTML = "";
-  nepaliMonths.forEach((month, index) => {
-    const option = document.createElement("option");
-    option.value = index;
-    option.textContent = month;
-    monthSelector.appendChild(option);
-  });
-  
-  // Add focus styles for accessibility
-  document.querySelectorAll('.select-input').forEach(select => {
-    select.addEventListener('focus', () => {
-      select.parentElement.classList.add('focused');
-    });
-    
-    select.addEventListener('blur', () => {
-      select.parentElement.classList.remove('focused');
-    });
-  });
-}
+/* Update header today with time period and live seconds */
+let timeUpdateInterval = null;
 
 function updateHeaderToday(todayBs, todayAd) {
   if (!headerTodayEl) return;
   
   const adStr = `${todayAd.getFullYear()}-${pad2(todayAd.getMonth() + 1)}-${pad2(todayAd.getDate())}`;
-  const weekFull = ["आइतवार", "सोमवार", "मंगलवार", "बुधवार", "बिहीवार", "शुक्रवार", "शनिबार"][todayAd.getDay()];
+  const weekFull = nepaliWeekdaysFull[todayAd.getDay()];
   const bsText = `${nepaliMonths[todayBs.month]} ${toNepNum(todayBs.day)}, ${toNepNum(todayBs.year)} (${weekFull})`;
   
-  headerTodayEl.textContent = `आज: ${bsText} | AD: ${adStr}`;
+  // Get current time and determine time period
+  const updateTime = () => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}:${seconds}`;
+    
+    let timePeriod = '';
+    if (hours >= 4 && hours < 11) {
+      timePeriod = 'बिहानको';
+    } else if (hours >= 11 && hours < 15) {
+      timePeriod = 'दिउँसोको';
+    } else if (hours >= 15 && hours < 18) {
+      timePeriod = 'अपराह्न';
+    } else if (hours >= 18 && hours < 21) {
+      timePeriod = 'बेलुकाको';
+    } else {
+      timePeriod = 'रातिको';
+    }
+    
+    headerTodayEl.innerHTML = `
+      <span class="date-info">आज: ${bsText} | AD: ${adStr}</span>
+      <span class="time-info">${timePeriod}: ${timeStr}</span>
+    `;
+    headerTodayEl.classList.toggle('saturday', weekFull === 'शनिबार');
+  };
+  
+  // Clear existing interval if any
+  if (timeUpdateInterval) {
+    clearInterval(timeUpdateInterval);
+  }
+  
+  // Initial update
+  updateTime();
+  
+  // Update every second for live countdown
+  timeUpdateInterval = setInterval(updateTime, 1000);
 }
 
-function buildUpcomingFestivalsAllYears(todayAd, limit = 50) {
+/* Mobile Menu Functionality */
+function initMobileMenu() {
+  mobileMenuToggle.addEventListener('click', () => {
+    mobileMenuToggle.classList.toggle('active');
+    navMenu.classList.toggle('active');
+  });
+
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenuToggle.classList.remove('active');
+      navMenu.classList.remove('active');
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!mobileMenuToggle.contains(e.target) && !navMenu.contains(e.target)) {
+      mobileMenuToggle.classList.remove('active');
+      navMenu.classList.remove('active');
+    }
+  });
+}
+
+/* Initialize Date Converter */
+function initConverter() {
+  // Toggle between converter modes
+  converterToggleBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const mode = this.dataset.mode;
+      
+      converterToggleBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      if (mode === 'bs-to-ad') {
+        bsToAdForm.classList.add('active');
+        adToBsForm.classList.remove('active');
+        bsToAdResult.style.display = 'none';
+        adToBsResult.style.display = 'none';
+      } else {
+        bsToAdForm.classList.remove('active');
+        adToBsForm.classList.add('active');
+        bsToAdResult.style.display = 'none';
+        adToBsResult.style.display = 'none';
+      }
+    });
+  });
+  
+  // BS to AD converter
+  convertBsToAdBtn.addEventListener('click', function() {
+    const bsYear = parseInt(document.getElementById('bs-year-input').value);
+    const bsMonth = parseInt(document.getElementById('bs-month-input').value);
+    const bsDay = parseInt(document.getElementById('bs-day-input').value);
+    
+    const result = bsToAdConverter(bsYear, bsMonth, bsDay);
+    
+    bsToAdResult.style.display = 'block';
+    
+    if (result.error) {
+      bsToAdResult.className = 'converter-result error';
+      bsToAdResult.innerHTML = `<span>${result.error}</span>`;
+      return;
+    }
+    
+    bsToAdResult.className = 'converter-result success';
+    
+    bsToAdResult.innerHTML = `
+      <div class="result-date-combined english">
+        <div class="date-main">${result.formattedDate}</div>
+        <div class="weekday ${result.isSaturday ? 'saturday' : ''}">${result.weekday}</div>
+      </div>
+    `;
+  });
+  
+  // AD to BS converter
+  convertAdToBsBtn.addEventListener('click', function() {
+    const adYear = parseInt(document.getElementById('ad-year-input').value);
+    const adMonth = parseInt(document.getElementById('ad-month-input').value);
+    const adDay = parseInt(document.getElementById('ad-day-input').value);
+    
+    const result = adToBsConverter(adYear, adMonth, adDay);
+    
+    adToBsResult.style.display = 'block';
+    
+    if (result.error) {
+      adToBsResult.className = 'converter-result error';
+      adToBsResult.innerHTML = `<span>${result.error}</span>`;
+      return;
+    }
+    
+    adToBsResult.className = 'converter-result success';
+    
+    const bsDate = result.bsResult;
+    const monthName = nepaliMonths[bsDate.month];
+    const bsFormatted = `${monthName} ${toNepNum(bsDate.day)}, ${toNepNum(bsDate.year)}`;
+    
+    adToBsResult.innerHTML = `
+      <div class="result-date-combined nepali">
+        <div class="date-main">${bsFormatted}</div>
+        <div class="weekday ${result.isSaturday ? 'saturday' : ''}">${result.weekday}</div>
+      </div>
+    `;
+  });
+  
+  // Set current date as default
+  const today = new Date();
+  const todayYear = today.getFullYear();
+  const todayMonth = today.getMonth() + 1;
+  const todayDay = today.getDate();
+  
+  document.getElementById('ad-year-input').value = todayYear;
+  document.getElementById('ad-month-input').value = todayMonth;
+  document.getElementById('ad-day-input').value = todayDay;
+  
+  const todayBs = adToBs(today);
+  if (!todayBs.outOfRange) {
+    document.getElementById('bs-year-input').value = todayBs.year;
+    document.getElementById('bs-month-input').value = todayBs.month;
+    document.getElementById('bs-day-input').value = todayBs.day;
+  } else {
+    document.getElementById('bs-year-input').value = 2082;
+    document.getElementById('bs-month-input').value = 7;
+    document.getElementById('bs-day-input').value = 22;
+  }
+  
+  // Add Enter key support for converter inputs
+  document.querySelectorAll('.converter-input-row input').forEach(input => {
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const converterForm = input.closest('.converter-form');
+        if (converterForm.id === 'bs-to-ad-form') {
+          convertBsToAdBtn.click();
+        } else {
+          convertAdToBsBtn.click();
+        }
+      }
+    });
+  });
+}
+
+/* Upcoming Events - Show ALL events from current year onward */
+function buildUpcomingEvents(todayAd, limit = 50) {
   const years = getAvailableYears();
   const todayUTC = Date.UTC(todayAd.getFullYear(), todayAd.getMonth(), todayAd.getDate());
   const items = [];
   
-  for (const year of years) {
+  // Get current BS year
+  const todayBs = adToBs(todayAd);
+  const currentBsYear = todayBs.year;
+  
+  // Filter years starting from current BS year
+  const yearsFromNow = years.filter(y => y >= currentBsYear);
+  
+  for (const year of yearsFromNow) {
     const yearHolidays = holidaysByYear[year] || [];
     
     for (const holiday of yearHolidays) {
@@ -914,119 +1314,184 @@ function buildUpcomingFestivalsAllYears(todayAd, limit = 50) {
       const diff = Math.round((dayUTC - todayUTC) / 86400000);
       
       if (diff >= 0) {
+        const weekday = nepaliWeekdaysFull[adParts.w];
+        const adDate = new Date(adParts.y, adParts.m - 1, adParts.d);
+        const adFormatted = adDate.toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric'
+        });
+        
         items.push({
           label: holiday.name,
           bsText: `${nepaliMonths[holiday.month]} ${toNepNum(holiday.day)}, ${toNepNum(year)}`,
-          adText: `${adParts.y}-${pad2(adParts.m)}-${pad2(adParts.d)}`,
+          adText: adFormatted,
           inDays: diff,
           sortKey: dayUTC,
-          isRed: holiday.red || false
+          isRed: holiday.red || false,
+          weekday: weekday,
+          isSaturday: weekday === 'शनिबार',
+          day: holiday.day,
+          month: holiday.month,
+          year: year,
+          adParts: adParts
         });
       }
     }
   }
   
-  // Sort by date
   items.sort((a, b) => a.sortKey - b.sortKey);
-  
-  // Limit results
   return items.slice(0, limit);
 }
 
-function renderUpcoming(todayAd) {
-  const festivals = buildUpcomingFestivalsAllYears(todayAd, 50);
+function renderUpcomingEvents(todayAd) {
+  const events = buildUpcomingEvents(todayAd, 50); // Increased limit to show more events
   upcomingList.innerHTML = "";
   
-  if (!festivals.length) {
-    const li = document.createElement("li");
-    li.className = "upcoming-item";
-    li.innerHTML = `
-      <div class="up-title">कुनै आगामी पर्वहरू फेला परेन</div>
-      <div class="up-sub">तपाईंको चयनका लागि आगामी पर्वहरू उपलब्ध छैनन्</div>
+  if (!events.length) {
+    upcomingList.innerHTML = `
+      <div class="upcoming-item">
+        <div class="event-date">
+          <div class="day">--</div>
+          <div class="month">--</div>
+        </div>
+        <div class="event-info">
+          <div class="event-title">कुनै आगामी कार्यक्रमहरू छैनन्</div>
+          <div class="event-meta">तपाईंको चयनका लागि आगामी कार्यक्रमहरू उपलब्ध छैनन्</div>
+        </div>
+      </div>
     `;
-    upcomingList.appendChild(li);
     return;
   }
   
-  festivals.forEach(fest => {
-    const li = document.createElement("li");
-    li.className = "upcoming-item";
+  events.forEach(event => {
+    const li = document.createElement('li');
+    li.className = 'upcoming-item';
     
-    const badgeText = fest.inDays === 0 ? "आज" : `${fest.inDays} दिन बाँकी`;
-    const badgeClass = fest.isRed ? "up-badge red" : "up-badge";
+    let badgeText = '';
+    if (event.inDays === 0) {
+      badgeText = "आज";
+    } else if (event.inDays === 1) {
+      badgeText = "भोलि";
+    } else if (event.inDays === 2) {
+      badgeText = "पर्सी";
+    } else if (event.inDays <= 7) {
+      badgeText = `${toNepNum(event.inDays)} दिन`;
+    } else if (event.inDays <= 30) {
+      const weeks = Math.floor(event.inDays / 7);
+      badgeText = `${toNepNum(weeks)} हप्ता`;
+    } else if (event.inDays <= 365) {
+      const months = Math.floor(event.inDays / 30);
+      badgeText = `${toNepNum(months)} महिना`;
+    } else {
+      const years = Math.floor(event.inDays / 365);
+      badgeText = `${toNepNum(years)} वर्ष`;
+    }
+    
+    if (event.inDays > 0) {
+      badgeText += " बाँकी";
+    }
+    
+    const badgeClass = event.isRed ? "event-pill red" : "event-pill";
     
     li.innerHTML = `
-      <div class="up-title">${fest.label}</div>
-      <div class="up-sub">BS: ${fest.bsText}</div>
-      <div class="up-sub">AD: ${fest.adText}</div>
-      <div class="up-sub"><span class="${badgeClass}">${badgeText}</span></div>
+      <div class="event-date">
+        <div class="day">${toNepNum(event.day)}</div>
+        <div class="month">${nepaliMonths[event.month]}</div>
+      </div>
+      <div class="event-info">
+        <div class="event-title">${event.label}</div>
+        <div class="event-meta ${event.isSaturday ? 'saturday' : ''}">${event.bsText}</div>
+        <div class="event-meta">${event.adText}</div>
+      </div>
+      <div class="${badgeClass}">${badgeText}</div>
     `;
+    
+    li.addEventListener('click', () => {
+      openDayModal({
+        year: event.year,
+        month: event.month,
+        day: event.day,
+        adParts: event.adParts,
+        weekday: event.weekday,
+        tithi: tithiForAD(event.adParts.y, event.adParts.m, event.adParts.d),
+        festival: event.label
+      });
+    });
     
     upcomingList.appendChild(li);
   });
 }
 
-/* Theme functionality */
-function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  localStorage.setItem("np_theme", theme);
+/* Selector and upcoming festivals functionality */
+function populateSelectors() {
+  const years = getAvailableYears();
+  
+  yearSelector.innerHTML = "";
+  years.forEach(y => {
+    const option = document.createElement("option");
+    option.value = y;
+    option.textContent = toNepNum(y);
+    yearSelector.appendChild(option);
+  });
+  
+  monthSelector.innerHTML = "";
+  nepaliMonths.forEach((month, index) => {
+    const option = document.createElement("option");
+    option.value = index;
+    option.textContent = month;
+    monthSelector.appendChild(option);
+  });
 }
-
-function initTheme() {
-  const saved = localStorage.getItem("np_theme");
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const theme = saved || (prefersDark ? "dark" : "light");
-  applyTheme(theme);
-}
-
-themeToggle.addEventListener("click", () => {
-  const current = document.documentElement.getAttribute("data-theme");
-  const next = current === "dark" ? "light" : "dark";
-  applyTheme(next);
-});
 
 /* App state and initialization */
-let currentYear = Math.min(...Object.keys(bsData).map(Number));
-let currentMonth = 6; // Default to Ashwin
+let currentYear = 2082;
+let currentMonth = 7;
+
+function setCurrentDateToToday() {
+  const now = new Date();
+  const todayBs = adToBs(now);
+  
+  if (!todayBs.outOfRange) {
+    currentYear = todayBs.year;
+    currentMonth = todayBs.month;
+  }
+}
 
 function populateMonthYearAndRender() {
   const now = new Date();
   const todayBs = adToBs(now);
   
+  // Update selectors
+  yearSelector.value = String(currentYear);
+  monthSelector.value = String(currentMonth);
+  
   generateCalendar(currentMonth, currentYear, todayBs);
   updateHeaderToday(todayBs, now);
   updatePageTitle(todayBs);
-  renderUpcoming(now);
-  updateCalendarNotes();
+  renderUpcomingEvents(now);
+  renderNotesList();
 }
 
 function init() {
-  // Initialize theme
-  initTheme();
+  // Set current date to today
+  setCurrentDateToToday();
+  
+  // Initialize converters
+  initConverter();
+  initCurrencyConverter();
+  
+  // Start rate auto-refresh
+  startRateAutoRefresh();
+  
+  // Initialize mobile menu
+  initMobileMenu();
   
   // Initialize notes
   renderNotesList();
   
   // Populate selectors
   populateSelectors();
-  
-  // Set initial date
-  const now = new Date();
-  const todayBs = adToBs(now);
-  const years = getAvailableYears();
-  const minYear = years[0];
-  
-  if (!todayBs.outOfRange && hasYear(todayBs.year)) {
-    currentYear = todayBs.year;
-    currentMonth = todayBs.month;
-  } else {
-    currentYear = minYear;
-    currentMonth = 0;
-  }
-  
-  // Update selectors
-  yearSelector.value = String(currentYear);
-  monthSelector.value = String(currentMonth);
   
   // Initial render
   populateMonthYearAndRender();
@@ -1044,8 +1509,6 @@ function init() {
       currentYear = years[Math.max(0, currentIndex - 1)];
     }
     
-    yearSelector.value = String(currentYear);
-    monthSelector.value = String(currentMonth);
     populateMonthYearAndRender();
   });
   
@@ -1058,8 +1521,6 @@ function init() {
       currentYear = years[Math.min(years.length - 1, currentIndex + 1)];
     }
     
-    yearSelector.value = String(currentYear);
-    monthSelector.value = String(currentMonth);
     populateMonthYearAndRender();
   });
   
@@ -1076,9 +1537,26 @@ function init() {
       currentMonth = todayBs.month;
     }
     
-    yearSelector.value = String(currentYear);
-    monthSelector.value = String(currentMonth);
     populateMonthYearAndRender();
+    
+    // Update converter inputs
+    document.getElementById('bs-year-input').value = todayBs.year;
+    document.getElementById('bs-month-input').value = todayBs.month;
+    document.getElementById('bs-day-input').value = todayBs.day;
+    
+    document.getElementById('ad-year-input').value = now.getFullYear();
+    document.getElementById('ad-month-input').value = now.getMonth() + 1;
+    document.getElementById('ad-day-input').value = now.getDate();
+    
+    // Trigger conversion
+    setTimeout(() => {
+      if (bsToAdForm.classList.contains('active')) {
+        convertBsToAdBtn.click();
+      } else {
+        convertAdToBsBtn.click();
+      }
+      performCurrencyConversion();
+    }, 100);
   });
   
   yearSelector.addEventListener("change", () => {
@@ -1100,16 +1578,16 @@ function init() {
     }
   });
   
-  // Responsive optimizations
-  window.addEventListener('resize', () => {
-    // Re-render on orientation change for better mobile experience
-    if (window.innerWidth <= 768) {
-      populateMonthYearAndRender();
-    }
-  });
-  
   // Add loading animation
-  document.body.classList.add('loaded');
+  document.body.classList.remove('loading');
+  
+  // Handle window resize for responsive updates
+  window.addEventListener('resize', () => {
+    // Re-render calendar on resize to adjust for mobile/desktop views
+    const now = new Date();
+    const todayBs = adToBs(now);
+    generateCalendar(currentMonth, currentYear, todayBs);
+  });
 }
 
 // Initialize app when DOM is ready
