@@ -641,6 +641,24 @@ function nptDateISO(d = new Date()) {
   return `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
 }
 
+// Get today's AD date in Nepal (Asia/Kathmandu) regardless of viewer timezone.
+// Returns a Date object with local components set to Nepal's current YYYY-MM-DD.
+function getNepalTodayADDate() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kathmandu',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(new Date());
+
+  const y = Number(parts.find(p => p.type === 'year')?.value);
+  const m = Number(parts.find(p => p.type === 'month')?.value);
+  const d = Number(parts.find(p => p.type === 'day')?.value);
+
+  // Using local Date here is fine because adToBs reads YYYY/MM/DD components and converts using Date.UTC.
+  return new Date(y, m - 1, d);
+}
+
 async function fetchSunTimesForISO(iso) {
   try {
     const res = await fetch(
@@ -699,7 +717,8 @@ let forexLastUpdated = null;
 // Fetch current forex rates from NRB API
 async function fetchCurrentForexRates() {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // Use Nepal local date to match NRB publishing dates (avoid UTC day-boundary issues)
+    const today = (typeof nptDateISO === 'function') ? nptDateISO() : new Date().toISOString().split('T')[0];
     const url = `https://www.nrb.org.np/api/forex/v1/rates?from=${today}&to=${today}&per_page=100&page=1`;
     
     const response = await fetch(url, {
@@ -768,9 +787,10 @@ async function fetchCurrentForexRates() {
       'CAD': { buy: 97.50, sell: 98.00, unit: 1, name: 'Canadian Dollar' },
       'AUD': { buy: 87.80, sell: 88.30, unit: 1, name: 'Australian Dollar' },
       'CHF': { buy: 148.20, sell: 148.90, unit: 1, name: 'Swiss Franc' },
-      'JPY': { buy: 0.88, sell: 0.89, unit: 100, name: 'Japanese Yen' },
+      // Keep fallback rates normalized to "per 1 unit" (same as processed NRB rates)
+      'JPY': { buy: 0.88 / 100, sell: 0.89 / 100, unit: 1, name: 'Japanese Yen' },
       'CNY': { buy: 18.40, sell: 18.50, unit: 1, name: 'Chinese Yuan' },
-      'INR': { buy: 1.60, sell: 1.61, unit: 100, name: 'Indian Rupee' },
+      'INR': { buy: 1.60 / 100, sell: 1.61 / 100, unit: 1, name: 'Indian Rupee' },
       'NPR': { buy: 1, sell: 1, unit: 1, name: 'Nepalese Rupee' }
     };
     
@@ -881,6 +901,8 @@ function performCurrencyConversion() {
     
     currencyResult.className = 'converter-result success';
     currencyResult.innerHTML = `
+      <div class="result-title">Exchange rate</div>
+      <div class="result-details">${rateDetails}</div>
       <div class="result-amount">${formattedResult} ${toCurrency}</div>
       <div class="result-details">${formattedAmount} ${fromCurrency} = ${formattedResult} ${toCurrency}</div>
     `;
@@ -938,7 +960,8 @@ function diffFromTodayText(adY, adM, adD) {
   const diff = Math.round((dayUTC - todayUTC) / 86400000);
   
   if (diff === 0) return "आज";
-  if (diff > 0) return `${toNepNum(diff)} दिन बाँकी`;
+  if (diff === 1) return "भोलि";
+  if (diff > 1) return `${toNepNum(diff)} दिन बाँकी`;
   return `${toNepNum(Math.abs(diff))} दिन पहिले`;
 }
 
@@ -952,10 +975,12 @@ function openNoteEditor(dateKey, year, month, day) {
 }
 
 // Close note editor
-function closeNoteEditor() {
+// By default we keep currentNoteDate (the modal's selected date) so "Edit" and "Delete" buttons still work.
+// When closing the day modal, pass true to clear the selected date.
+function closeNoteEditor(clearDateKey = false) {
   noteFormContainer.style.display = 'none';
   noteInput.value = '';
-  currentNoteDate = null;
+  if (clearDateKey) currentNoteDate = null;
 }
 
 async function openDayModal({ year, month, day, adParts, weekday, tithi, festival, note }) {
@@ -1036,7 +1061,7 @@ function closeDayModal() {
   modal.classList.remove("show");
   modal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
-  closeNoteEditor();
+  closeNoteEditor(true);
 }
 
 // Modal event listeners
@@ -1066,8 +1091,8 @@ saveNoteBtn.addEventListener("click", () => {
 });
 
 cancelNoteBtn.addEventListener("click", () => {
-  closeNoteEditor();
-  const note = getNote(currentNoteDate);
+  closeNoteEditor(false);
+  const note = currentNoteDate ? getNote(currentNoteDate) : null;
   if (note) {
     dmNoteLi.style.display = "";
   } else {
@@ -1076,6 +1101,7 @@ cancelNoteBtn.addEventListener("click", () => {
 });
 
 editNoteBtn.addEventListener("click", () => {
+  if (!currentNoteDate) return;
   const dateKey = currentNoteDate;
   const [year, month, day] = dateKey.split('-').map(Number);
   openNoteEditor(dateKey, year, month, day);
@@ -1112,22 +1138,30 @@ function updateHeaderToday(todayBs, todayAd) {
   const weekFull = nepaliWeekdaysFull[todayAd.getDay()];
   const bsText = `${nepaliMonths[todayBs.month]} ${toNepNum(todayBs.day)}, ${toNepNum(todayBs.year)} (${weekFull})`;
   
-  // Get current time and determine time period
+  // Get current time and determine time period (Nepal time)
   const updateTime = () => {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Kathmandu',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).formatToParts(new Date());
+
+    const hoursNum = Number(parts.find(p => p.type === 'hour')?.value || 0);
+    const hours = String(hoursNum).padStart(2, '0');
+    const minutes = String(parts.find(p => p.type === 'minute')?.value || '00').padStart(2, '0');
+    const seconds = String(parts.find(p => p.type === 'second')?.value || '00').padStart(2, '0');
     const timeStr = `${hours}:${minutes}:${seconds}`;
     
     let timePeriod = '';
-    if (hours >= 4 && hours < 11) {
+    if (hoursNum >= 4 && hoursNum < 11) {
       timePeriod = 'बिहानको';
-    } else if (hours >= 11 && hours < 15) {
+    } else if (hoursNum >= 11 && hoursNum < 15) {
       timePeriod = 'दिउँसोको';
-    } else if (hours >= 15 && hours < 18) {
+    } else if (hoursNum >= 15 && hoursNum < 18) {
       timePeriod = 'अपराह्न';
-    } else if (hours >= 18 && hours < 21) {
+    } else if (hoursNum >= 18 && hoursNum < 21) {
       timePeriod = 'बेलुकाको';
     } else {
       timePeriod = 'रातिको';
@@ -1254,8 +1288,8 @@ function initConverter() {
     `;
   });
   
-  // Set current date as default
-  const today = new Date();
+  // Set current date as default (Nepal)
+  const today = getNepalTodayADDate();
   const todayYear = today.getFullYear();
   const todayMonth = today.getMonth() + 1;
   const todayDay = today.getDate();
@@ -1373,26 +1407,20 @@ function renderUpcomingEvents(todayAd) {
       badgeText = "आज";
     } else if (event.inDays === 1) {
       badgeText = "भोलि";
-    } else if (event.inDays === 2) {
-      badgeText = "पर्सी";
     } else if (event.inDays <= 7) {
-      badgeText = `${toNepNum(event.inDays)} दिन`;
+      badgeText = `${toNepNum(event.inDays)} दिन बाँकी`;
     } else if (event.inDays <= 30) {
-      const weeks = Math.floor(event.inDays / 7);
-      badgeText = `${toNepNum(weeks)} हप्ता`;
+      const weeks = Math.max(1, Math.floor(event.inDays / 7));
+      badgeText = `${toNepNum(weeks)} हप्ता बाँकी`;
     } else if (event.inDays <= 365) {
-      const months = Math.floor(event.inDays / 30);
-      badgeText = `${toNepNum(months)} महिना`;
+      const months = Math.max(1, Math.floor(event.inDays / 30));
+      badgeText = `${toNepNum(months)} महिना बाँकी`;
     } else {
-      const years = Math.floor(event.inDays / 365);
-      badgeText = `${toNepNum(years)} वर्ष`;
+      const years = Math.max(1, Math.floor(event.inDays / 365));
+      badgeText = `${toNepNum(years)} वर्ष बाँकी`;
     }
-    
-    if (event.inDays > 0) {
-      badgeText += " बाँकी";
-    }
-    
-    const badgeClass = event.isRed ? "event-pill red" : "event-pill";
+
+const badgeClass = event.isRed ? "event-pill red" : "event-pill";
     
     li.innerHTML = `
       <div class="event-date">
@@ -1449,7 +1477,7 @@ let currentYear = 2082;
 let currentMonth = 7;
 
 function setCurrentDateToToday() {
-  const now = new Date();
+  const now = getNepalTodayADDate();
   const todayBs = adToBs(now);
   
   if (!todayBs.outOfRange) {
@@ -1459,7 +1487,7 @@ function setCurrentDateToToday() {
 }
 
 function populateMonthYearAndRender() {
-  const now = new Date();
+  const now = getNepalTodayADDate();
   const todayBs = adToBs(now);
   
   // Update selectors
@@ -1525,8 +1553,8 @@ function init() {
   });
   
   todayBtn.addEventListener("click", () => {
-    const now = new Date();
-    const todayBs = adToBs(now);
+    const now = getNepalTodayADDate();
+  const todayBs = adToBs(now);
     const years = getAvailableYears();
     
     if (todayBs.outOfRange) {
@@ -1571,9 +1599,18 @@ function init() {
   
   // Keyboard navigation
   window.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowLeft") prevButton.click();
-    if (e.key === "ArrowRight") nextButton.click();
+    const target = e.target;
+    const tag = target && target.tagName ? target.tagName.toLowerCase() : '';
+    const isTypingField = tag === 'input' || tag === 'textarea' || tag === 'select' || (target && target.isContentEditable);
+
+    // Don't hijack arrows while user is typing
+    if (!isTypingField && !modal.classList.contains('show') && !deleteConfirmModal.classList.contains('show')) {
+      if (e.key === "ArrowLeft") prevButton.click();
+      if (e.key === "ArrowRight") nextButton.click();
+    }
+
     if (e.key === "Enter" && modal.classList.contains("show") && document.activeElement === noteInput) {
+      e.preventDefault();
       saveNoteBtn.click();
     }
   });
@@ -1581,12 +1618,15 @@ function init() {
   // Add loading animation
   document.body.classList.remove('loading');
   
-  // Handle window resize for responsive updates
+  // Handle window resize for responsive updates (debounced)
+  let resizeTimer = null;
   window.addEventListener('resize', () => {
-    // Re-render calendar on resize to adjust for mobile/desktop views
-    const now = new Date();
-    const todayBs = adToBs(now);
-    generateCalendar(currentMonth, currentYear, todayBs);
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const now = getNepalTodayADDate();
+  const todayBs = adToBs(now);
+      generateCalendar(currentMonth, currentYear, todayBs);
+    }, 150);
   });
 }
 
