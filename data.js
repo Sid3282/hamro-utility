@@ -1,4 +1,4 @@
-﻿// Nepali Patro data (BS 2000–2099)
+// Nepali Patro data (BS 2000–2099)
 
 const DATA = {
   // Fixed: Correct Nepali month names with proper ordering
